@@ -20,7 +20,7 @@
             <Slider IsSnapToTickEnabled="True" TickFrequency="1"  Name="sd" Height="20" Width="400" />
             <TextBlock Name="metime"></TextBlock>
         </StackPanel>
-        <NaiveRC:NaiveRCView Name="NRCView" Grid.Row="1"/>
+        <NaiveRC:NaiveRCView Name="NRCView" Grid.Row="1" FontSize="15"/>
 
     </Grid>
 </Window>

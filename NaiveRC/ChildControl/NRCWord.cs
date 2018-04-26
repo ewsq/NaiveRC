@@ -22,6 +22,7 @@ namespace NaiveRC.ChildControl
     class NRCWord : Control
     {
         #region WordColor 默认字体颜色
+
         /// <summary>
         /// 默认字体颜色
         /// </summary>
@@ -44,6 +45,7 @@ namespace NaiveRC.ChildControl
         #endregion
 
         #region PlayColor 吟唱字体颜色
+
         /// <summary>
         /// 吟唱字体颜色
         /// </summary>
@@ -87,38 +89,24 @@ namespace NaiveRC.ChildControl
                 );
         #endregion
 
-        #region PositionTime 当前进度时间（单位毫秒
-        /// <summary>
-        /// 当前进度时间（单位毫秒
-        /// </summary>
-        public double PositionTime
-        {
-            get { return (double)GetValue(PositionTimeProperty); }
-            set
-            {
-                SetValue(PositionTimeProperty, value);
-            }
-        }
-        public static readonly DependencyProperty PositionTimeProperty =
-            DependencyProperty.Register("PositionTime", typeof(double), typeof(NRCWord)
-                );
-        #endregion
+
 
         #region PlayTime 吟唱时间（单位毫秒
-        /// <summary>
-        /// 吟唱时间（单位毫秒
-        /// </summary>
-        public double PlayTime
-        {
-            get { return (double)GetValue(PlayTimeProperty); }
-            set
-            {
-                SetValue(PlayTimeProperty, value);
-            }
-        }
-        public static readonly DependencyProperty PlayTimeProperty =
-            DependencyProperty.Register("PlayTime", typeof(double), typeof(NRCWord)
-                );
+        ///// <summary>
+        ///// 吟唱时间（单位毫秒
+        ///// </summary>
+        //public double PlayTime
+        //{
+        //    get { return (double)GetValue(PlayTimeProperty); }
+        //    set
+        //    {
+        //        SetValue(PlayTimeProperty, value);
+        //    }
+        //}
+        //public static readonly DependencyProperty PlayTimeProperty =
+        //    DependencyProperty.Register("PlayTime", typeof(double), typeof(NRCWord)
+        //        );
+        public double PlayTime { get; set; }
         #endregion
 
         #region StartTime 开始时间（单位毫秒
@@ -139,47 +127,41 @@ namespace NaiveRC.ChildControl
         public double StartTime { get; set; }
         #endregion
 
+
         /// <summary>
         /// 是否正在进行描色，false否，true是
         /// </summary>
-        public bool IsPlay { get; set; }
+        //public bool IsPlay { get; set; }
 
 
         TextBlock ColorTextBlock, WordTextBlock;
         DoubleAnimation widthAnimation;
         Storyboard storyboard;
+        AnimationState animationState = AnimationState.Stop;
 
+        /// <summary>
+        /// 描色动画状态
+        /// </summary>
+        enum AnimationState
+        {
+            /// <summary>
+            /// 执行中
+            /// </summary>
+            Play,
+            /// <summary>
+            /// 暂停中
+            /// </summary>
+            Pause,
+            /// <summary>
+            /// 已停止
+            /// </summary>
+            Stop
+        }
         static NRCWord()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(NRCWord), new FrameworkPropertyMetadata(typeof(NRCWord)));
 
         }
-        /// <summary>
-        /// 初始化
-        /// </summary>
-        void Load()
-        {
-            widthAnimation = new DoubleAnimation();
-            widthAnimation.Completed += widthAnimation_Completed;
-           
-            storyboard = new Storyboard();
-
-            //如果描色动画不流畅可提高帧率，随之cpu占用也会提高，qq音乐能做到<1%真的牛逼
-            Timeline.SetDesiredFrameRate(storyboard, 10);//cpu<=1.1%
-
-            //Timeline.SetDesiredFrameRate(storyboard, 20);//cpu<=1.5%
-
-            //Timeline.SetDesiredFrameRate(storyboard, 60);//默认60帧时 cpu<=5% 非常夸张
-
-            storyboard.Children.Add(widthAnimation);
-            Storyboard.SetTarget(widthAnimation, ColorTextBlock);
-            Storyboard.SetTargetProperty(widthAnimation, new PropertyPath("(TextBlock.Width)"));
-           
-         
-        }
-
-
-
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -188,39 +170,105 @@ namespace NaiveRC.ChildControl
             WordTextBlock = GetTemplateChild("WordTextBlock") as TextBlock;
             Load();
         }
-
         /// <summary>
-        /// 重新开始描色
+        /// 初始化
         /// </summary>
-        public void RePlay()
+        void Load()
         {
-            if (IsPlay == false && ColorTextBlock != null)
-            {
-                IsPlay = true;
-                widthAnimation.From = 0;
-                widthAnimation.To = WordTextBlock.ActualWidth;
-                widthAnimation.Duration = TimeSpan.FromMilliseconds(PlayTime);
+            widthAnimation = new DoubleAnimation();
 
-                storyboard.Begin();
-                //ColorTextBlock.BeginAnimation(WidthProperty, widthAnimation);
+            //widthAnimation.FillBehavior = FillBehavior.HoldEnd;
+            storyboard = new Storyboard();
+            storyboard.Completed += storyboard_Completed;
+
+            //如果描色动画不流畅可提高帧率，随之cpu占用也会提高，默认帧率在描色时cpu<=8%，丧心病狂。而调整帧率可能会出现的bug是暂停时视觉无法暂停，不能准确停止，导致描色会描完字
+
+            //Timeline.SetDesiredFrameRate(storyboard, 40);//cpu<=1.5%
+
+            //Timeline.SetDesiredFrameRate(storyboard, 10);//cpu<=1.1%，
+
+            //Timeline.SetDesiredFrameRate(storyboard, 20);//cpu<=1.5%
+
+            //Timeline.SetDesiredFrameRate(storyboard, 60);//默认60帧时 cpu<=5% 非常夸张
+
+            storyboard.Children.Add(widthAnimation);
+            Storyboard.SetTarget(widthAnimation, ColorTextBlock);
+            Storyboard.SetTargetProperty(widthAnimation, new PropertyPath("(TextBlock.Width)"));
+
+        }
+        /// <summary>
+        /// 设置描色状态
+        /// </summary>
+        /// <param name="as_"></param>
+        private void SetState(AnimationState as_)
+        {
+
+
+
+            switch (as_)
+            {
+                case AnimationState.Pause:
+                    if (animationState != AnimationState.Stop)
+                    {
+                        storyboard.Pause();
+                    }
+
+                    break;
+                case AnimationState.Play:
+
+                    if (animationState == AnimationState.Pause)
+                    {
+                        storyboard.Resume();
+                    }
+                    else
+                    {
+                        storyboard.Begin();
+                    }
+                    break;
+                case AnimationState.Stop:
+
+                    
+                        storyboard.Stop();
+                    
+
+                    break;
             }
+            animationState = as_;
         }
 
-        private void widthAnimation_Completed(object sender, EventArgs e)
+
+
+
+        private void storyboard_Completed(object sender, EventArgs e)
         {
-            //播放完毕重置状态
-            IsPlay = false;
+
+
+            animationState = AnimationState.Stop;
+            Debug.WriteLine("[NRCWord->storyboard_Completed] word:" + Word);
         }
 
         /// <summary>
         /// 从当前进度开始播放动画
         /// </summary>
-        public void Play()
+        public void Play(double PositionTime)
         {
-           
-            if (IsPlay == false && ColorTextBlock != null)
+
+
+            ////获得已播放时间
+            //double hastime = (PositionTime - StartTime);
+            //if (hastime > 0)
+            //{
+            //    ////如果当前字已经播放的话就计算进度设置描色的位置
+            //    ColorTextBlock.Width = (WordTextBlock.ActualWidth / PlayTime) * hastime;
+
+
+
+            //}
+
+
+            if (animationState != AnimationState.Play && ColorTextBlock != null)
             {
-                IsPlay = true;
+
                 //动画所需时间（描色时间
                 double antime = 0;
                 //已播放的时间
@@ -228,35 +276,67 @@ namespace NaiveRC.ChildControl
                 double hastime = PlayTime - playedtime;
                 if (hastime > 0)
                 {
+                    //IsPlay = true;
                     antime = hastime;
+                    Debug.WriteLine("[NRCWord->Play] word:" + Word + ",antime:" + antime + ",playedtime:" + playedtime + ",hastime:" + hastime);
+                    widthAnimation.To = WordTextBlock.ActualWidth;
+                    widthAnimation.Duration = TimeSpan.FromMilliseconds(antime);
+                    //animationState = AnimationState.Play;
+                    //storyboard.Begin();
+                    SetState(AnimationState.Play);
                 }
-                Debug.WriteLine("[NRCWord->Play] word:"+Word+",antime:" + antime + ",playedtime:" + playedtime + ",hastime:" + hastime);
-                widthAnimation.To = WordTextBlock.ActualWidth;
-                widthAnimation.Duration = TimeSpan.FromMilliseconds(antime);
 
-                storyboard.Begin();
+
+
             }
         }
 
-        public void Stop()
+        public void Pause()
         {
-            storyboard.Stop();
+            //IsPlay = false;
+
+            //animationState = AnimationState.Pause;
+            //storyboard.Pause();
+            SetState(AnimationState.Pause);
+
+            Debug.WriteLine("[NRCWord->Pause] word:" + Word);
         }
 
         /// <summary>
         /// 进度调整定位
         /// </summary>
-        public void ChangedPosition()
+        public void ChangedPosition(double positiontime)
         {
-            IsPlay = false;
-            //获得已播放时间
-            double playedtime = PositionTime - StartTime;
-            if (playedtime > 0)
+
+            //IsPlay = false;
+            //storyboard.Stop();
+
+            //SetState(AnimationState.Stop);
+
+           
+            if (animationState != AnimationState.Stop)
             {
-                //如果当前字已经播放的话就计算进度设置描色的位置
-                ColorTextBlock.Width = (WordTextBlock.ActualWidth / PlayTime) * playedtime;
+                double hastime = PlayTime - (positiontime - StartTime);
+                if (hastime > 0)
+                {
+
+                    storyboard.Seek(TimeSpan.FromMilliseconds(hastime));
+                }
             }
-            Debug.WriteLine("[NRCWord->ChangedPosition] playedtime:" + playedtime);
+            else
+            {
+                //获得已播放时间
+                double playedtime = (positiontime - StartTime);
+                if (playedtime > 0)
+                {
+                    //如果当前字已经播放的话就计算进度设置描色的位置
+                    ColorTextBlock.Width = (WordTextBlock.ActualWidth / PlayTime) * playedtime;
+                    Debug.WriteLine("[NRCWord->ChangedPosition] playedtime:" + playedtime + ",word:" + Word);
+
+                }
+            }
+
+            //Debug.WriteLine("[NRCWord->ChangedPosition] hastime:" + hastime);
 
         }
         /// <summary>
@@ -264,9 +344,13 @@ namespace NaiveRC.ChildControl
         /// </summary>
         public void Reset()
         {
-            IsPlay = false;
-            Stop();
+            //IsPlay = false;
+            //storyboard.Stop();
+            SetState(AnimationState.Stop);
+            widthAnimation.From = 0;
             ColorTextBlock.Width = 0;
+            //Debug.WriteLine("重置描色:word:" + Word + ",colorw:" + ColorTextBlock.ActualWidth);
+
         }
 
         /// <summary>
@@ -274,7 +358,17 @@ namespace NaiveRC.ChildControl
         /// </summary>
         public void SetColor()
         {
-            ColorTextBlock.Width = WordTextBlock.ActualWidth;
+            if (animationState == AnimationState.Stop)
+            {
+                ColorTextBlock.Width = WordTextBlock.ActualWidth;
+                Debug.Write("stop");
+            }
+            else
+            {
+                storyboard.Seek(TimeSpan.FromMilliseconds(0));
+                //SetState(AnimationState.Stop);
+                //Reset();
+            }
         }
     }
 }

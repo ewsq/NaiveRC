@@ -1,6 +1,7 @@
 ﻿using NaiveRC.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -21,20 +22,21 @@ namespace NaiveRC.ChildControl
     class NRCSentence : Control
     {
         #region StartTime 开始时间（单位毫秒
-        /// <summary>
-        /// 开始时间（单位毫秒
-        /// </summary>
-        public double StartTime
-        {
-            get { return (double)GetValue(StartTimeProperty); }
-            set
-            {
-                SetValue(StartTimeProperty, value);
-            }
-        }
-        public static readonly DependencyProperty StartTimeProperty =
-            DependencyProperty.Register("StartTime", typeof(double), typeof(NRCWord)
-                );
+        public double StartTime { get; set; }
+        ///// <summary>
+        ///// 开始时间（单位毫秒
+        ///// </summary>
+        //public double StartTime
+        //{
+        //    get { return (double)GetValue(StartTimeProperty); }
+        //    set
+        //    {
+        //        SetValue(StartTimeProperty, value);
+        //    }
+        //}
+        //public static readonly DependencyProperty StartTimeProperty =
+        //    DependencyProperty.Register("StartTime", typeof(double), typeof(NRCWord)
+        //        );
         #endregion
 
         //#region PositionTime 当前进度时间（单位毫秒
@@ -55,23 +57,27 @@ namespace NaiveRC.ChildControl
         //#endregion
 
         #region LyricType 歌词类型
-        /// <summary>
-        /// 当前进度时间（单位毫秒
-        /// </summary>
-        public LyricType LyricType
-        {
-            get { return (LyricType)GetValue(LyricTypeProperty); }
-            set
-            {
-                SetValue(LyricTypeProperty, value);
-            }
-        }
-        public static readonly DependencyProperty LyricTypeProperty =
-            DependencyProperty.Register("LyricType", typeof(LyricType), typeof(NRCWord)
-                );
+        public LyricType LyricType { get; set; }
+        ///// <summary>
+        ///// 当前进度时间（单位毫秒
+        ///// </summary>
+        //public LyricType LyricType
+        //{
+        //    get { return (LyricType)GetValue(LyricTypeProperty); }
+        //    set
+        //    {
+        //        SetValue(LyricTypeProperty, value);
+        //    }
+        //}
+        //public static readonly DependencyProperty LyricTypeProperty =
+        //    DependencyProperty.Register("LyricType", typeof(LyricType), typeof(NRCWord)
+        //        );
         #endregion
 
-        //普通歌词上色状态，false未上色，true已上色
+        
+        /// <summary>
+        /// 普通歌词上色状态，false未上色，true已上色
+        /// </summary>
         bool IsLRCColored = false;
 
         StackPanel StackPanel;
@@ -83,12 +89,13 @@ namespace NaiveRC.ChildControl
         /// </summary>
         NRCWord NowPlayNRCWord;
 
+        string Words = "";
         static NRCSentence()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(NRCSentence), new FrameworkPropertyMetadata(typeof(NRCSentence)));
         }
 
-     
+
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -96,10 +103,10 @@ namespace NaiveRC.ChildControl
             StackPanel = GetTemplateChild("StackPanel") as StackPanel;
 
 
-            
+
         }
 
-       
+
         /// <summary>
         /// 加载歌词文字
         /// </summary>
@@ -116,11 +123,11 @@ namespace NaiveRC.ChildControl
                 nrcword.Word = w.Word;
                 nrcword.PlayTime = w.PlayTime;
                 nrcword.StartTime = w.StartTime;
-
                 //将文字加入控件
                 StackPanel.Children.Add(nrcword);
                 //保存控件集合
                 NRCWordList.Add(nrcword);
+                Words += w.Word;
             }
         }
 
@@ -150,8 +157,8 @@ namespace NaiveRC.ChildControl
                 {
                     //取最后一个
                     NRCWord nrcword = w.Last();
-                    nrcword.PositionTime = PositionTime;
-                    nrcword.Play();
+                    //nrcword.Position = PositionTime;
+                    nrcword.Play(PositionTime);
                     //记录当前描色的字
                     NowPlayNRCWord = nrcword;
 
@@ -164,6 +171,7 @@ namespace NaiveRC.ChildControl
         /// </summary>
         public void ChangedPlayPosition(double PositionTime)
         {
+
             if (LyricType == LyricType.LRC)
             {
                 foreach (NRCWord w in NRCWordList)
@@ -174,6 +182,7 @@ namespace NaiveRC.ChildControl
             }
             else
             {
+
                 foreach (NRCWord w in NRCWordList)
                 {
                     //整句重置描色
@@ -183,8 +192,15 @@ namespace NaiveRC.ChildControl
                         //如果播放进度超过字的进度直接上色
                         w.SetColor();
                     }
+                    else
+                    {
+                        //Debug.WriteLine("nrcs cp:"+w.Word);
 
+                        w.ChangedPosition(PositionTime);
+                    }
                 }
+               
+
             }
         }
 
@@ -195,7 +211,7 @@ namespace NaiveRC.ChildControl
         {
             if (NowPlayNRCWord != null)
             {
-                NowPlayNRCWord.Stop();
+                NowPlayNRCWord.Pause();
             }
         }
 
@@ -207,6 +223,15 @@ namespace NaiveRC.ChildControl
                 //整句重置描色
                 w.Reset();
             }
+        }
+
+        /// <summary>
+        /// 获取完整的歌词
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return Words;
         }
     }
 }

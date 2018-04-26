@@ -87,7 +87,7 @@ namespace NaiveRC
                 {
                     //重置前句歌词描色
                     NowPlayNRCSentence.Reset();
-                  
+                    Debug.WriteLine("[重置描色]"+NowPlayNRCSentence.ToString());
                 }
                 NowPlayNRCSentence = ns;
                 ns.UpdatePlayPositionTime(time);
@@ -123,6 +123,12 @@ namespace NaiveRC
             if (d.Count() > 0)
             {
                 NRCSentence ns = d.Last();
+
+                if (NowPlayNRCSentence!=null && NowPlayNRCSentence != ns)
+                {
+                    NowPlayNRCSentence.Reset();
+                }
+                NowPlayNRCSentence = ns;
                 ns.ChangedPlayPosition(time);
             }
         }

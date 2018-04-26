@@ -57,6 +57,7 @@ namespace NaiveRC.Sample
             {
                 STime st = GetStime(sd.Value);
                 me.Position = new TimeSpan(0, st.m, st.s);
+               
                 NRCView.ResetPositionTime(me.Position.TotalMilliseconds);
                 //UpdatePositionTime();
 
@@ -102,6 +103,7 @@ namespace NaiveRC.Sample
         {
             dt.Stop();
             me.Pause();
+            NRCView.Pause();
         }
     }
 }
