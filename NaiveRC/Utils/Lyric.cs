@@ -20,7 +20,7 @@ namespace NaiveRC.Utils
 
             LyricType lt = GetLyricType(str);
             NRC.LyricType = lt;
-            if(lt== LyricType.LRC)
+            if (lt == LyricType.LRC)
             {
                 LoadLRC(str);
             }
@@ -28,13 +28,13 @@ namespace NaiveRC.Utils
         private void LoadLRC(string str)
         {
             //NRC.NRCS.Clear();
-           
+
             try
             {
-              
+
 
                 //Regex reg = new Regex(@"\[(?<time>([0-9]\d)\:([0-9]\d)\.([0-9]\d))\](?<lrc>.*?)(\n)", RegexOptions.IgnoreCase);
-                Regex reg = new Regex(@"\[(?<time>(.*?)\:(.*?)\.(.*?))\](?<lrc>.*?)(\n)", RegexOptions.IgnoreCase);
+                Regex reg = new Regex(@"\[(?<time>(.*?)\:(.*?)\.(.*?))\](?<lrc>.*?)(\r|\n)", RegexOptions.IgnoreCase);
 
                 // 搜索匹配的字符串
                 MatchCollection matches = reg.Matches(str);
@@ -46,7 +46,7 @@ namespace NaiveRC.Utils
                     string time = match.Groups["time"].Value;
 
                     string lrc = match.Groups["lrc"].Value;
-                    lrc = lrc.Replace(" ", "");
+                    //lrc = lrc.Replace(" ", "");
 
                     Debug.WriteLine(time + "/" + lrc);
 
@@ -56,29 +56,152 @@ namespace NaiveRC.Utils
                         nrcsm.StartTime = ToDouble(time);
                         nrcsm.NRCWord = new List<NRCWordModel>();
 
+
                         //把歌词一个个字切出来
+
                         for (int i = 0; i < lrc.Length; i++)
                         {
-                            nrcsm.NRCWord.Add(new NRCWordModel()
+                            //nrcsm.NRCWord.Add();
+                            string c = lrc.Substring(i, 1);
+                            CharType ct = GetCharType(c);
+
+                            NRCWordModel nrcwm = new NRCWordModel();
+                            nrcwm.PlayTime = 1000;//测试数据，默认吟唱时间1秒
+                            nrcwm.StartTime = nrcsm.StartTime + (i * 1000);//测试数据，字开始时间
+                            nrcwm.Word = c;
+
+                            //什么鸡掰代码 写完自己都看晕了
+                            if (i == 0 || ct == CharType.Chinese)
                             {
-                                
-                                StartTime = ToDouble(time) + (i * 1000),
-                                PlayTime = 1000,
-                                Word = lrc.Substring(i, 1)
-                              
-                            });
+
+                                //创建新字组
+
+                                nrcsm.NRCWord.Add(nrcwm);
+                            }
+                            else if (ct == CharType.English)
+                            {
+
+
+                                CharType ctlast = GetCharType(lrc.Substring((i - 1),1));
+                                if (ctlast != CharType.Chinese && ctlast != CharType.Space)
+                                {
+                                    
+
+                                    nrcsm.NRCWord[nrcsm.NRCWord.Count-1].Word += c;
+                                    Debug.WriteLine("char:"+c+",last char:"+ lrc.Substring((i - 1), 1) + ",laststr:" + nrcsm.NRCWord[nrcsm.NRCWord.Count-1].Word);
+                                }
+                                else
+                                {
+                                    //创建新字组
+                                    nrcsm.NRCWord.Add(nrcwm);
+                                }
+                            }
+                            else if (ct == CharType.Space || ct == CharType.Symbol)
+                            {
+
+                                nrcsm.NRCWord[nrcsm.NRCWord.Count-1].Word += c;
+                            }
+
+                            //Debug.WriteLine(c + "->" + ct);
+
                         }
+                        //加入歌词
                         NRC.NRCS.Add(nrcsm);
                     }
                 }
                 Debug.WriteLine("加载网易云歌词成功!");
 
             }
-            catch
+            catch (Exception ec)
             {
-                Debug.WriteLine("加载网易云歌词失败.");
+                Debug.WriteLine("加载网易云歌词失败." + ec);
             }
         }
+
+        #region 获得歌词上一个字组
+        ///// <summary>
+        ///// 获得歌词上一个字组
+        ///// </summary>
+        ///// <param name="nm"></param>
+        ///// <returns></returns>
+        //public NRCWordModel GetLastNRCSentence(NRCSentenceModel nm)
+        //{
+        //    int lastindex = (nm.NRCWord.Count) > 1 ? nm.NRCWord.Count - 1 : nm.NRCWord.Count - 1;
+        //    if (nm.NRCWord.Count > 0)
+        //    {
+        //        return nm.NRCWord[lastindex];
+        //    }
+        //    else
+        //    {
+        //        return null;
+        //    }
+        //}
+        #endregion
+
+        #region 判断字符类型
+        public enum CharType
+        {
+            /// <summary>
+            /// 中文
+            /// </summary>
+            Chinese,
+            /// <summary>
+            /// 英文
+            /// </summary>
+            English,
+            /// <summary>
+            /// 符号
+            /// </summary>
+            Symbol,
+            /// <summary>
+            /// 空格
+            /// </summary>
+            Space,
+            /// <summary>
+            /// 未知
+            /// </summary>
+            Unknown
+
+
+        }
+        /// <summary>
+        /// 获得字符的类型
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public CharType GetCharType(string str)
+        {
+            Regex regChinese = new Regex(@"([\u4e00-\u9fa5])", RegexOptions.IgnoreCase);
+            Regex regEnglish = new Regex(@"([a-zA-Z0-9])", RegexOptions.IgnoreCase);
+            Regex regSymbol = new Regex(@"([_\-’'])", RegexOptions.IgnoreCase);
+            Regex regSpace = new Regex(@"([\s+])", RegexOptions.IgnoreCase);
+
+            if (regChinese.Match(str).Success)
+            {
+                return CharType.Chinese;
+            }
+            if (regEnglish.Match(str).Success)
+            {
+                return CharType.English;
+            }
+            if (regSymbol.Match(str).Success)
+            {
+                return CharType.Symbol;
+            }
+            if (regSpace.Match(str).Success)
+            {
+                return CharType.Space;
+            }
+            return CharType.Unknown;
+        }
+        #endregion
+
+        #region 将歌词时间格式转为总毫秒数
+        /// <summary>
+        /// 将歌词时间格式转为总毫秒数
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
         public double ToDouble(string time)
         {
             int m = int.Parse(time.Split(':').First());
@@ -87,7 +210,14 @@ namespace NaiveRC.Utils
 
             return new TimeSpan(0, 0, m, s, ms).TotalMilliseconds;
         }
+        #endregion
 
+        #region 获取歌词格式
+        /// <summary>
+        /// 获取歌词格式
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public LyricType GetLyricType(string str)
         {
             Regex reg = new Regex(@"\[(?<time>(.*?)\:(.*?)\.(.*?))\](?<lrc>.*?)(\n)", RegexOptions.IgnoreCase);
@@ -102,5 +232,6 @@ namespace NaiveRC.Utils
                 return LyricType.NRC;
             }
         }
+        #endregion
     }
 }
