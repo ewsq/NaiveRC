@@ -96,6 +96,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bin\Debug\薛之谦 - 刚刚好.mp3" />
+    <Resource Include="播放演示.gif" />
+    <Resource Include="歌词制作.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
