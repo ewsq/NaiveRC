@@ -1,0 +1,16 @@
+c:\users\sb\source\repos\NaiveRC\NaiveRC\bin\Debug\NaiveRC.dll
+c:\users\sb\source\repos\NaiveRC\NaiveRC\bin\Debug\NaiveRC.pdb
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\GeneratedInternalTypeHelper.g.cs
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC_MarkupCompile.cache
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC_MarkupCompile.lref
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\Themes\Generic.baml
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.g.resources
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.Properties.Resources.resources
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.csproj.GenerateResource.cache
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.csproj.CoreCompileInputs.cache
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.dll
+c:\users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.pdb
+C:\Users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.csprojResolveAssemblyReference.cache
+C:\Users\sb\source\repos\NaiveRC\NaiveRC\bin\Debug\Newtonsoft.Json.dll
+C:\Users\sb\source\repos\NaiveRC\NaiveRC\bin\Debug\Newtonsoft.Json.xml
+C:\Users\sb\source\repos\NaiveRC\NaiveRC\obj\Debug\NaiveRC.csproj.CopyComplete
