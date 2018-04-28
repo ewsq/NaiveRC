@@ -74,7 +74,7 @@ namespace NaiveRC.ChildControl
         //        );
         #endregion
 
-        
+
         /// <summary>
         /// 普通歌词上色状态，false未上色，true已上色
         /// </summary>
@@ -152,17 +152,31 @@ namespace NaiveRC.ChildControl
             }
             else
             {
-                var w = NRCWordList.Where(m => PositionTime >= m.StartTime);
-                if (w.Count() > 0)
+                var w = NRCWordList.Where(m => m.animationState == NRCWord.AnimationState.Stop);
+                //if (w.Count() > 0)
+                //{
+                foreach (NRCWord nw in NRCWordList)
                 {
-                    //取最后一个
-                    NRCWord nrcword = w.Last();
-                    //nrcword.Position = PositionTime;
-                    nrcword.Play(PositionTime);
+                    nw.Play(PositionTime);
                     //记录当前描色的字
-                    NowPlayNRCWord = nrcword;
-
+                    NowPlayNRCWord = nw;
                 }
+
+
+                //}
+
+
+                //var w = NRCWordList.Where(m => PositionTime >= m.StartTime && m.animationState== NRCWord.AnimationState.Stop);
+                //if (w.Count() > 0)
+                //{
+                //    //取最后一个
+                //    NRCWord nrcword = w.Last();
+                //    //nrcword.Position = PositionTime;
+                //    nrcword.Play(PositionTime);
+                //    //记录当前描色的字
+                //    NowPlayNRCWord = nrcword;
+
+                //}
             }
         }
 
@@ -199,7 +213,7 @@ namespace NaiveRC.ChildControl
                         w.ChangedPosition(PositionTime);
                     }
                 }
-               
+
 
             }
         }

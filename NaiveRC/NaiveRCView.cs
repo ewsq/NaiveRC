@@ -63,8 +63,10 @@ namespace NaiveRC
             {
                 NRCSentence nrcs = new NRCSentence();
                 nrcs.StartTime = nrcsm.StartTime;
-                nrcs.LyricType =   LyricType.NRC;//测试逐字
-                //nrcs.LyricType =  nrc.LyricType;//正常调用
+                //nrcs.LyricType =   LyricType.NRC;//测试逐字
+                nrcs.LyricType =  nrc.LyricType;//正常调用
+                nrcs.Margin = new Thickness(0, 10, 0, 0);
+
                 nrcs.Loaded += (e, c) =>
                 {
                     nrcs.LoadNRCWord(nrcsm.NRCWord);
@@ -79,7 +81,8 @@ namespace NaiveRC
            
             var d = NRCSList.Where(m => time >= m.StartTime);//cpu <= 1%
 
-           
+            //Debug.WriteLine(d.Count());
+
             if (d.Count() > 0)
             {
                 NRCSentence ns = d.Last();

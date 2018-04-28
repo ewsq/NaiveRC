@@ -1,7 +1,9 @@
 ﻿using NaiveRC.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -23,8 +25,15 @@ namespace NaiveRC.Utils
             if (lt == LyricType.LRC)
             {
                 LoadLRC(str);
+                Export();
+            }
+            else
+            {
+                LoadNRC(str);
             }
         }
+
+        #region 加载LRC歌词
         private void LoadLRC(string str)
         {
             //NRC.NRCS.Clear();
@@ -82,13 +91,13 @@ namespace NaiveRC.Utils
                             {
 
 
-                                CharType ctlast = GetCharType(lrc.Substring((i - 1),1));
+                                CharType ctlast = GetCharType(lrc.Substring((i - 1), 1));
                                 if (ctlast != CharType.Chinese && ctlast != CharType.Space)
                                 {
-                                    
 
-                                    nrcsm.NRCWord[nrcsm.NRCWord.Count-1].Word += c;
-                                    Debug.WriteLine("char:"+c+",last char:"+ lrc.Substring((i - 1), 1) + ",laststr:" + nrcsm.NRCWord[nrcsm.NRCWord.Count-1].Word);
+
+                                    nrcsm.NRCWord[nrcsm.NRCWord.Count - 1].Word += c;
+                                    Debug.WriteLine("char:" + c + ",last char:" + lrc.Substring((i - 1), 1) + ",laststr:" + nrcsm.NRCWord[nrcsm.NRCWord.Count - 1].Word);
                                 }
                                 else
                                 {
@@ -99,7 +108,7 @@ namespace NaiveRC.Utils
                             else if (ct == CharType.Space || ct == CharType.Symbol)
                             {
 
-                                nrcsm.NRCWord[nrcsm.NRCWord.Count-1].Word += c;
+                                nrcsm.NRCWord[nrcsm.NRCWord.Count - 1].Word += c;
                             }
 
                             //Debug.WriteLine(c + "->" + ct);
@@ -117,26 +126,8 @@ namespace NaiveRC.Utils
                 Debug.WriteLine("加载网易云歌词失败." + ec);
             }
         }
-
-        #region 获得歌词上一个字组
-        ///// <summary>
-        ///// 获得歌词上一个字组
-        ///// </summary>
-        ///// <param name="nm"></param>
-        ///// <returns></returns>
-        //public NRCWordModel GetLastNRCSentence(NRCSentenceModel nm)
-        //{
-        //    int lastindex = (nm.NRCWord.Count) > 1 ? nm.NRCWord.Count - 1 : nm.NRCWord.Count - 1;
-        //    if (nm.NRCWord.Count > 0)
-        //    {
-        //        return nm.NRCWord[lastindex];
-        //    }
-        //    else
-        //    {
-        //        return null;
-        //    }
-        //}
         #endregion
+
 
         #region 判断字符类型
         public enum CharType
@@ -220,18 +211,51 @@ namespace NaiveRC.Utils
         /// <returns></returns>
         public LyricType GetLyricType(string str)
         {
-            Regex reg = new Regex(@"\[(?<time>(.*?)\:(.*?)\.(.*?))\](?<lrc>.*?)(\n)", RegexOptions.IgnoreCase);
-            if (reg.Match(str).Success)
+            //Regex reg = new Regex(@"\[(?<time>(.*?)\:(.*?)\.(.*?))\](?<lrc>.*?)(\n)", RegexOptions.IgnoreCase);
+            //if (reg.Match(str).Success)
+            //{
+            //    //网易云格式歌词
+            //    return LyricType.LRC;
+            //}
+            //else
+            //{
+            //    //nrc暂时不做判断
+            //    return LyricType.NRC;
+            //}
+            if (str.IndexOf("NRCS") != -1)
             {
-                //网易云格式歌词
-                return LyricType.LRC;
+                return LyricType.NRC;
             }
             else
             {
-                //nrc暂时不做判断
-                return LyricType.NRC;
+                return LyricType.LRC;
             }
         }
         #endregion
+
+
+        #region 加载NRC格式
+        private void LoadNRC(string nrc)
+        {
+            NRC = JsonConvert.DeserializeObject<NRCModel>(nrc);
+        }
+        #endregion
+
+        public void Export()
+        {
+            File.WriteAllText("test.txt", JsonConvert.SerializeObject(NRC));
+        }
+
+        /// <summary>
+        /// 压缩字符串
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        //public static string Compress(string input)
+        //{
+        //    byte[] inputBytes = Encoding.Default.GetBytes(input);
+        //    byte[] result = Compress(inputBytes);
+        //    return Convert.ToBase64String(result);
+        //}
     }
 }

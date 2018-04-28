@@ -137,12 +137,12 @@ namespace NaiveRC.ChildControl
         TextBlock ColorTextBlock, WordTextBlock;
         DoubleAnimation widthAnimation;
         Storyboard storyboard;
-        AnimationState animationState = AnimationState.Stop;
+        public AnimationState animationState = AnimationState.Stop;
 
         /// <summary>
         /// 描色动画状态
         /// </summary>
-        enum AnimationState
+        public enum AnimationState
         {
             /// <summary>
             /// 执行中
@@ -227,9 +227,9 @@ namespace NaiveRC.ChildControl
                     break;
                 case AnimationState.Stop:
 
-                    
-                        storyboard.Stop();
-                    
+
+                    storyboard.Stop();
+
 
                     break;
             }
@@ -274,6 +274,14 @@ namespace NaiveRC.ChildControl
                 //已播放的时间
                 double playedtime = PositionTime - StartTime;
                 double hastime = PlayTime - playedtime;
+                if (playedtime < 0)
+                {
+                    hastime = 0;
+
+                }
+
+                //Debug.WriteLine("hastime:" + hastime + ",playedtime:" + playedtime + ",word:" + Word);
+
                 if (hastime > 0)
                 {
                     //IsPlay = true;
@@ -284,6 +292,16 @@ namespace NaiveRC.ChildControl
                     //animationState = AnimationState.Play;
                     //storyboard.Begin();
                     SetState(AnimationState.Play);
+                }
+                else if (playedtime >= 0 && ColorTextBlock.Width <= 0)
+                {
+                    
+                    Debug.WriteLine("[ ! NRCWord->Play] word:" + Word + ",width:" + ColorTextBlock.Width + ",playedtime:" + playedtime + ",hastime:" + hastime);
+                    widthAnimation.To = WordTextBlock.ActualWidth;
+                    widthAnimation.Duration = TimeSpan.FromMilliseconds(0);
+                   
+                    SetState(AnimationState.Play);
+
                 }
 
 
@@ -313,7 +331,7 @@ namespace NaiveRC.ChildControl
 
             //SetState(AnimationState.Stop);
 
-           
+
             if (animationState != AnimationState.Stop)
             {
                 double hastime = PlayTime - (positiontime - StartTime);
